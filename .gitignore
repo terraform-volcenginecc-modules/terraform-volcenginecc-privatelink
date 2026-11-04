@@ -1,0 +1,34 @@
+.terraform/
+.terraform.lock.hcl
+*.tfstate*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.tfstate.lock.info
+*.auto.tfvars
+*.auto.tfvars.json
+terraform.tfvars
+.validation/
+
+# Local configuration and generated artifacts
+*.tfvars
+*.tfvars.json
+.env
+*.env
+.idea/
+.DS_Store
+__pycache__/
+*.pyc
+*.log
+
+# Local acceptance files outside the module distribution
+.acceptance/
+draft_*_folder/
+tests/
+scripts/
+docs/
+.github/

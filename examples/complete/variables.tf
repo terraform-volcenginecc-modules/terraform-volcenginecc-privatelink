@@ -2,16 +2,6 @@ variable "region" {
   description = "服务与消费方的共同地域。"
   type        = string
 }
-variable "service_profile" {
-  description = "服务账号的 Provider profile；跨账号时必须配置独立身份。null 使用 Provider 环境凭据。"
-  type        = string
-  default     = null
-}
-variable "consumer_profile" {
-  description = "消费账号的 Provider profile；应与 consumer_account_id 对应。null 使用 Provider 环境凭据。"
-  type        = string
-  default     = null
-}
 variable "backend_type" {
   description = "服务方已有负载均衡类型，本示例限 CLB/ALB。"
   type        = string
@@ -30,11 +20,11 @@ variable "backends" {
   }
 }
 variable "consumer_account_id" {
-  description = "消费方数字账号 ID，服务白名单只允许该账号。"
+  description = "当前部署身份的数字账号 ID；服务与消费方使用同一账号，服务白名单只允许该账号。"
   type        = string
 }
 variable "consumer_vpc_id" {
-  description = "消费账号已有 VPC。"
+  description = "当前账号已有消费方 VPC。"
   type        = string
 }
 variable "consumer_subnets" {
@@ -46,7 +36,7 @@ variable "consumer_subnets" {
   }
 }
 variable "security_group_ids" {
-  description = "消费方已有安全组；规则仅允许目标业务客户端和端口。"
+  description = "当前账号已有消费方安全组；放通目标业务客户端和端口，并允许 100.64.0.0/10 入方向 ICMP 健康检查。"
   type        = set(string)
 }
 variable "approve_connection" {
@@ -65,12 +55,12 @@ variable "payer" {
   default     = "Endpoint"
 }
 variable "service_project_name" {
-  description = "服务账号项目名；修改会替换服务。"
+  description = "当前账号内服务方项目名；修改会替换服务。"
   type        = string
   default     = "default"
 }
 variable "consumer_project_name" {
-  description = "消费账号项目名；修改会替换 Endpoint。"
+  description = "当前账号内消费方项目名；修改会替换 Endpoint。"
   type        = string
   default     = "default"
 }
@@ -85,7 +75,7 @@ variable "tags" {
   default     = [{ key = "scenario", value = "saas-private-access" }]
 }
 variable "dns_zone_name" {
-  description = "消费账号专用私网 DNS Zone 域名；不要与现有或原生 DNS Zone 重复。"
+  description = "当前账号内消费方专用私网 DNS Zone 域名；不要与现有或原生 DNS Zone 重复。"
   type        = string
 }
 variable "dns_record_host" {

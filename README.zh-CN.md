@@ -9,7 +9,7 @@
 2026-11-04 使用 Terraform 1.5.7、线上 Provider 0.0.73 完成 basic/complete 同账号跨 VPC 测试：默认/可用区域名解析、消费方 CNAME、域名 HTTP、二次 Plan No changes 和标准 Destroy 均通过。全部临时资源已清理。测试使用 source 指向本地模块的隔离示例副本，Registry Module 消费仍未验证。跨账号、原生 TXT DNS 与完整 IAM 权限验证尚未完成。模块不管理 VPC、子网、后端、监听器、安全组规则或 IAM 策略。它们由调用方维护。目标 Provider 文档确认服务资源类型为 CLB、ALB、RDSMySQL；**未确认 NLB 支持**。若 NLB 为必需依赖，本方案须先完成 Provider 支持验证。
 
 ```text
-服务账号 / 服务 VPC                         消费账号 / 消费 VPC
+当前账号：服务 VPC                          当前账号：消费 VPC
 健康后端 → CLB/ALB → Endpoint Service ← 私网连接 ← Endpoint ← 业务客户端
                     白名单 + 手动审批                 ↑
                                               PrivateZone CNAME
@@ -52,7 +52,7 @@ module "privatelink" {
 
 在调用方 root 中声明并赋值 `backend_id`、`zone_id`、`account_id`、`consumer_vpc_id`、`consumer_subnet_id`（均为 string）和 `security_group_ids`（list(string)）。这些值必须对应真实、匹配且已授权的资源。凭据通过 Provider 环境变量传入。
 
-调用时显式传入两套 Provider：`volcenginecc.service` 管理服务及连接审批，`volcenginecc.consumer` 管理 Endpoint。同账号时两者可映射至同一个已配置 Provider；跨账号时使用独立账号凭据或 profile。Provider、region、凭据、角色信任和 backend 由调用方 root 配置。
+调用时将模块的两个别名映射至同一个已配置 Provider：`volcenginecc.service` 管理服务及连接审批，`volcenginecc.consumer` 管理 Endpoint。两个示例的服务与消费 VPC 均属于同一账号。Provider、region、凭据、IAM 权限和 backend 由调用方 root 配置。
 
 资源以 `map(object(...))` 的逻辑 key 标识：
 
@@ -67,7 +67,7 @@ module "privatelink" {
 | 示例 | 场景 | 资源与边界 |
 |---|---|---|
 | basic | 同账号跨 VPC 的最小 SaaS 私网接入 | Endpoint Service、Endpoint、明确账号授权、自动接纳；使用 Endpoint 输出域名 |
-| complete | 服务提供方 Endpoint Service、消费方 Endpoint、手动审批、私网 DNS | 多可用区、跨账号 Provider、显式审批开关、白名单、消费方 PrivateZone/CNAME；原生 DNS 可选 |
+| complete | 同账号服务与消费 VPC、手动审批、私网 DNS | 多可用区、单一部署身份、显式审批开关、当前账号白名单、消费方 PrivateZone/CNAME；原生 DNS 可选 |
 
 按用户建议参考 AWS VPC Endpoints 子模块与阿里云 PrivateLink 的场景组织，不将其 Endpoint Policy 或 NLB 字段映射成火山引擎字段。未找到已确认的专项 demo，保留 basic/complete，不新增专项示例目录。
 
@@ -92,7 +92,7 @@ module "privatelink" {
 | volcenginecc.service | volcengine/volcenginecc >= 0.0.60, <= 0.0.73 | Endpoint Service、服务账号允许的连接审批 |
 | volcenginecc.consumer | volcengine/volcenginecc >= 0.0.60, <= 0.0.73 | Endpoint；complete 的 PrivateZone 和记录由示例 root 管理 |
 
-跨账号白名单只允许指定账号建立请求，不授予 IAM 角色权限，也不自动接纳请求。消费身份必须与白名单账号匹配。安全组应限定业务来源和端口，模块没有开放网段默认值。
+账号白名单只允许指定账号建立请求，不授予 IAM 角色权限，也不自动接纳请求。消费身份必须与白名单账号匹配。安全组应限定业务来源和端口，模块没有开放网段默认值。
 
 调用方还须在 Endpoint 安全组放通 PrivateLink 健康检查：IPv4 入方向 ICMP 来源 `100.64.0.0/10`（`port_start = -1`、`port_end = -1`）；IPv6 则放通入方向 ICMPv6 来源 `fd00:64::/32`。[官方排障指南](https://www.volcengine.com/docs/6980/155955)建议首次连接建立后三分钟再判断健康状态。Endpoint DNS 返回健康可用区地址；所有可用区不健康时，即使 Endpoint 已 Connected、直接 IP 业务可达，域名仍可能返回 NXDOMAIN。规则由调用方维护，模块不会自动添加。
 

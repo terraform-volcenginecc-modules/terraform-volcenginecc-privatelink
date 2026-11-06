@@ -9,7 +9,7 @@ Expose a provider's service privately to consumers for SaaS access, communicatio
 On 2026-11-04, basic and complete passed same-account tests across two VPCs with Terraform 1.5.7 and Registry Provider 0.0.73: default/zone-domain resolution, the consumer CNAME, HTTP by hostname, a second Plan (No changes), and standard Destroy. All temporary resources were removed. Tests used isolated example copies pointing to the local module; Registry module consumption remains unverified. Cross-account access, native TXT-based DNS, and full IAM permission tests remain incomplete. The module does not manage VPCs, subnets, backends, listeners, security group rules, or IAM policies; callers maintain them. Provider documentation confirms CLB, ALB, and RDSMySQL backends. **NLB support is unconfirmed**; if NLB is required, verify Provider support first.
 
 ```text
-Service account / service VPC                  Consumer account / consumer VPC
+Current account: service VPC                  Current account: consumer VPC
 Healthy backend → CLB/ALB → Endpoint Service ← private connection ← Endpoint ← client
                            allowlist + manual approval                ↑
                                                               PrivateZone CNAME
@@ -52,7 +52,7 @@ module "privatelink" {
 
 Declare and assign `backend_id`, `zone_id`, `account_id`, `consumer_vpc_id`, and `consumer_subnet_id` as strings, and `security_group_ids` as list(string), in the caller's root configuration. Values must identify real, matching, authorized resources. Supply credentials through Provider environment variables.
 
-Pass two Provider configurations explicitly: `volcenginecc.service` manages services and approvals; `volcenginecc.consumer` manages Endpoints. For one account, both can use the same configured Provider. For different accounts, use separate credentials or profiles. Configure Providers, region, credentials, role trust, and the Terraform backend in the caller's root.
+Map both module aliases to the same configured Provider: `volcenginecc.service` manages services and approvals; `volcenginecc.consumer` manages Endpoints. Both examples use one account for the service and consumer VPCs. Configure the Provider, region, credentials, IAM permissions, and Terraform backend in the caller's root.
 
 Resources use stable logical keys in `map(object(...))` inputs:
 
@@ -67,7 +67,7 @@ You may manage only services or connect only to existing services. The external 
 | Example | Scenario | Resources and boundaries |
 |---|---|---|
 | basic | Minimal SaaS private access across VPCs in one account | Endpoint Service, Endpoint, explicit account permission, automatic acceptance; uses the Endpoint output domain |
-| complete | Provider Endpoint Service, consumer Endpoint, manual approval, private DNS | Multiple zones, cross-account Providers, explicit approval switch, allowlist, consumer PrivateZone/CNAME; optional native DNS |
+| complete | Same-account service and consumer VPCs, manual approval, private DNS | Multiple zones, one deployment identity, explicit approval switch, current-account allowlist, consumer PrivateZone/CNAME; optional native DNS |
 
 The scenarios follow the requested AWS VPC Endpoints and Alibaba Cloud PrivateLink references. Their Endpoint Policy and NLB fields are not mapped to unsupported Volcengine fields. No confirmed specialized demo was found; only basic/complete example directories are provided.
 

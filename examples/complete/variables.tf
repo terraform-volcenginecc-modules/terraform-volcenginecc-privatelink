@@ -65,7 +65,7 @@ variable "consumer_project_name" {
   default     = "default"
 }
 variable "service_description" {
-  description = "可更新的服务描述，用于同一 State 下的更新验收。"
+  description = "可更新的服务描述。"
   type        = string
   default     = "SaaS private service with manual approval"
 }

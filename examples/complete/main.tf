@@ -1,20 +1,12 @@
 provider "volcenginecc" {
-  alias   = "service"
-  region  = var.region
-  profile = var.service_profile
-}
-
-provider "volcenginecc" {
-  alias   = "consumer"
-  region  = var.region
-  profile = var.consumer_profile
+  region = var.region
 }
 
 module "privatelink" {
   source = "terraform-volcenginecc-modules/privatelink/volcenginecc"
   providers = {
-    volcenginecc.service  = volcenginecc.service
-    volcenginecc.consumer = volcenginecc.consumer
+    volcenginecc.service  = volcenginecc
+    volcenginecc.consumer = volcenginecc
   }
 
   services = {
@@ -63,9 +55,8 @@ module "privatelink" {
   } : {}
 }
 
-# 在消费账号内创建并绑定消费方 VPC，无需跨账号共享 DNS Zone。
+# 在当前账号内创建 PrivateZone，仅绑定消费方 VPC。
 resource "volcenginecc_privatezone_private_zone" "client" {
-  provider       = volcenginecc.consumer
   zone_name      = var.dns_zone_name
   vpcs           = [{ vpc_id = var.consumer_vpc_id, region = var.region }]
   project_name   = var.consumer_project_name
@@ -75,7 +66,6 @@ resource "volcenginecc_privatezone_private_zone" "client" {
 }
 
 resource "volcenginecc_privatezone_record" "service" {
-  provider       = volcenginecc.consumer
   zid            = tonumber(volcenginecc_privatezone_private_zone.client.zid)
   host           = var.dns_record_host
   type           = "CNAME"

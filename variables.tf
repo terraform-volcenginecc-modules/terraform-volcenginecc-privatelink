@@ -126,7 +126,7 @@ variable "endpoints" {
         ))
       ])
     ])
-    error_message = "必须包含 ipv4；指定地址必须有效，IPv6 地址要求双栈。地址是否属于子网须在云端验收。"
+    error_message = "必须包含 ipv4；指定地址必须有效，IPv6 地址要求双栈。地址是否属于子网由云端校验。"
   }
   validation {
     condition = alltrue([

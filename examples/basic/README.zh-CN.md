@@ -1,23 +1,77 @@
-# basic
+# BASIC PrivateLink 示例
 
-同账号跨 VPC 的 SaaS 私网接入：服务提供方通过已有 CLB 发布 Endpoint Service，消费方创建 Interface Endpoint。账号白名单仅允许当前账号，此最小示例开启自动接纳。业务通过输出的 Endpoint 域名访问；自定义私网 DNS 和手动审批见 complete。
+## 1. 概述
 
-前置依赖：已部署的服务方 VPC/CLB/监听器/健康后端、消费方 VPC/子网、安全组，以及 PrivateLink 开通和配额。安全组规则及后端访问控制由调用方维护；不创建公网入口。
+本示例在同一账号的两个 VPC 之间建立最小 PrivateLink 链路：服务方使用已有单可用区 CLB 发布 Endpoint Service，消费方在已有 VPC 和子网中创建 Endpoint，并通过账号白名单和自动接纳建立连接。调用方需准备 CLB、健康后端、消费方网络和安全组；多可用区、手动审批和私网 DNS 见 complete 示例。
 
-除业务端口规则外，调用方须在 Endpoint 安全组放通 IPv4 入方向 ICMP 来源 `100.64.0.0/10`（`port_start = -1`、`port_end = -1`）；IPv6 须放通入方向 ICMPv6 来源 `fd00:64::/32`。首次连接建立后三分钟再检查可用区健康与 DNS。DNS 排除不健康可用区，所有可用区不健康时可能返回 NXDOMAIN，Connected 本身不能证明域名解析成功。
+## 2. 用法
 
-公开 module source 为 `terraform-volcenginecc-modules/privatelink/volcenginecc`，当前 draft 尚未发布；以下 init 需要 Registry 发布后执行。静态脚本使用隔离副本测试当前源码，不证明 Registry 消费成功。
+在 `examples/basic` 目录创建本地 `terraform.tfvars`，填写第 6 节列出的全部输入。凭据通过 Provider 支持的运行环境传入。
 
-使用 Terraform 1.5.7 或 OpenTofu 1.11.8，将 variables.tf 中所有输入填写到本地 terraform.tfvars，AK/SK 原样通过 `VOLCENGINE_ACCESS_KEY`、`VOLCENGINE_SECRET_KEY` 提供。然后执行（OpenTofu 将 terraform 替换为 tofu）：
-
-```bash
+```shell
 terraform init
 terraform plan
 terraform apply
-terraform plan -detailed-exitcode
+terraform plan
 terraform destroy
 ```
 
-服务和 Endpoint 的状态必须在云端达到可用且连接为 Connected；二次 Plan 预期退出码为 0。销毁后查询确认服务和 Endpoint 均不存在，外部依赖继续由原所有者管理。
+Apply 后确认服务和 Endpoint 状态可用、连接为 `Connected`，并从消费方 VPC 解析和访问 Endpoint 输出域名。第二次 Plan 用于检查幂等性。Destroy 前核对范围；已有 CLB、VPC、子网、安全组和业务后端不会被本示例删除。
 
-2026-11-04 使用 Terraform 1.5.7/线上 Provider 0.0.73 在隔离示例副本中验证当前本地模块。Apply、默认/可用区域名解析、域名 HTTP、二次 Plan No changes、标准 Destroy 均通过；所有临时资源已清理。Registry Module 消费仍未验证。OpenTofu 仅做静态验证，未执行真实云生命周期。CLB 是当前文档确认的后端类型，不能直接替换为 NLB ID。同账号多可用区、手动审批及私网 DNS 场景见 examples/complete。
+## 3. 依赖要求
+
+| 名称 | 版本 |
+|---|---|
+| `terraform` | `>= 1.5.7, <= 1.11.8`；项目基线为 `= 1.5.7` |
+| `volcengine/volcenginecc` | `= 0.0.73` |
+
+## 4. Providers
+
+| 名称 | 来源 |
+|---|---|
+| `volcenginecc.service` | `volcengine/volcenginecc`；管理 Endpoint Service |
+| `volcenginecc.consumer` | `volcengine/volcenginecc`；管理消费方 Endpoint |
+
+两个 alias 在本示例中使用相同地域和账号身份。
+
+## 5. 资源
+
+| 名称 | 说明 |
+|---|---|
+| `module.privatelink` | 通过 `terraform-volcenginecc-modules/privatelink/volcenginecc` 创建自动接纳的 Endpoint Service 和单可用区 Endpoint。 |
+
+本示例不直接创建其他 Resource 或 Data Source。
+
+## 6. 输入
+
+| 名称 | 说明 |
+|---|---|
+| `region` | 服务方和消费方资源所在地域。 |
+| `zone_id` | 后端 CLB 与消费方子网共同支持的可用区。 |
+| `backend_id` | 已有服务方 CLB ID；其监听器和健康后端由调用方维护。 |
+| `account_id` | 当前数字账号 ID，用作 Endpoint Service 的唯一账号白名单。 |
+| `consumer_vpc_id` | 已有消费方 VPC ID。 |
+| `consumer_subnet_id` | 消费方子网 ID，必须属于 `consumer_vpc_id` 和 `zone_id`。 |
+| `security_group_ids` | 消费方安全组 ID 集合，应只放行业务来源、业务端口和 PrivateLink 健康检查。 |
+
+所有输入均无默认值。
+
+## 7. 输出
+
+| 名称 | 说明 |
+|---|---|
+| `services` | Endpoint Service 的 ID、名称、域名、状态及原生 DNS 配置信息。 |
+| `endpoints` | 消费方 Endpoint 的 ID、域名、状态和连接状态。 |
+
+## 8. 示例
+
+本目录即为 basic 示例，适合单账号、单可用区、自动接纳且直接使用 Endpoint 域名的最小接入场景。需要手动审批、多可用区或自定义私网域名时使用 complete 示例。
+
+## 9. 说明
+
+- 凭据通过 Provider 支持的运行环境或认证配置传入，不写入源文件或参数文件。
+- Apply 后再次执行 `terraform plan`；结果无变化才满足幂等要求。
+- Endpoint 安全组除业务端口外，还需允许 IPv4 入方向 ICMP 来源 `100.64.0.0/10`；IPv6 场景允许 ICMPv6 来源 `fd00:64::/32`。健康状态稳定后再检查 DNS。
+- 账号白名单允许当前账号发起连接，但不授予 IAM 权限。安全组规则、后端鉴权和最小权限由调用方维护。
+- 本示例支持 CLB 后端，不支持以 NLB ID 替代 `backend_id`。
+- Destroy 只删除 `module.privatelink` 管理的 Endpoint 和 Endpoint Service，调用方已有依赖继续保留。

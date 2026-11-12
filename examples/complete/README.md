@@ -86,8 +86,8 @@ This directory contains the complete example for same-account, multi-zone access
 ## 9. Notes
 
 - Supply credentials through a Provider-supported runtime or authentication configuration. Do not store them in source or variable files.
-- Run `terraform plan` again after Apply. Except for the known issue below, idempotence requires the result to show no changes.
-- **Known issue (`Volcengine::PrivateLink::VpcEndpointConnection`)**: When a manually approved connection explicitly sets `bps = 100`, the first Apply can succeed, but the second plan may show a cloud readback value of `10000` and propose updating it to the configured value `100`. This is a connection-bandwidth readback or unit-consistency issue. If explicit bandwidth is required, verify the effective cloud value and review every plan. Otherwise, keep `connection_bps = null` to use the cloud default.
+- Run `terraform plan` again after Apply. Idempotence requires the result to show no changes.
+- **Bandwidth configuration note**: When a manually approved connection explicitly sets `bps = 100`, the first Apply can succeed, but the second plan may show a cloud readback value of `10000` and propose updating it to the configured value `100`. This is a connection-bandwidth readback or unit-consistency issue. If explicit bandwidth is required, verify the effective cloud value and review every plan. Otherwise, keep `connection_bps = null` to use the cloud default.
 - The first Apply creates the PrivateZone, but traffic remains unavailable until the connection is accepted. The Zone is bound only to the consumer VPC; one State should own any same-name Zone.
 - In addition to business ports, allow IPv4 ingress ICMP from `100.64.0.0/10` in the Endpoint security group. For IPv6, allow ICMPv6 from `fd00:64::/32`. DNS may return NXDOMAIN while targets are unhealthy.
 - Native DNS currently supports only `public`. Add the TXT ownership record to public authoritative DNS and wait for `Verified` before setting `enable_native_private_dns = true`. The verification request is write-only, so review subsequent plans.

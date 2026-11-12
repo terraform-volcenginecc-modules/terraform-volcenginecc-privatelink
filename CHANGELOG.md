@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.0
 
-- 初始化 PrivateLink draft 模块，按稳定 key 管理 Endpoint Service、消费方 Endpoint 和手动审批连接。
+- 初始化 PrivateLink 模块，按稳定 key 管理 Endpoint Service、消费方 Endpoint 和手动审批连接。
 - 增加 basic 和 complete 同账号跨 VPC 示例，覆盖明确账号授权、多可用区、手动审批与消费方私网 DNS。
 - complete 统一使用当前部署身份，移除独立账号 profile 配置。
 - 完成 Terraform 1.5.7/OpenTofu 1.11.8 静态验证，以及 Terraform 1.5.7/Provider 0.0.73 同账号 basic/complete 真实生命周期验证。

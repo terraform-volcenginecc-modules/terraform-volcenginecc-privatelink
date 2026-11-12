@@ -9,7 +9,8 @@ provider "volcenginecc" {
 }
 
 module "privatelink" {
-  source = "terraform-volcenginecc-modules/privatelink/volcenginecc"
+  source  = "terraform-volcenginecc-modules/privatelink/volcenginecc"
+  version = "~> 1.0"
   providers = {
     volcenginecc.service  = volcenginecc.service
     volcenginecc.consumer = volcenginecc.consumer

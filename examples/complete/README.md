@@ -1,5 +1,7 @@
 # COMPLETE PrivateLink Example
 
+Module source: `terraform-volcenginecc-modules/privatelink/volcenginecc`; module version: `version = "~> 1.0"` (>= 1.0.0, < 2.0.0). Provider version requirements are separate. Registry installation requires a published module release in this range.
+
 ## 1. Overview
 
 This example builds multi-zone PrivateLink access between service and consumer VPCs in one account. Existing CLB/ALB backends are published through an Endpoint Service, the consumer creates a multi-zone Endpoint, and the service owner approves the connection in stages. The example root also creates a PrivateZone and CNAME bound only to the consumer VPC. Supply backends, VPCs, subnets, security groups, and unused private IPs. basic omits manual approval and custom private DNS.

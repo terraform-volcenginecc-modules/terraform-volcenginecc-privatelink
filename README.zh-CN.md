@@ -2,6 +2,8 @@
 
 用于发布火山引擎 PrivateLink 服务、创建消费方终端节点，并管理显式连接审批。
 
+模块 source 为 `terraform-volcenginecc-modules/privatelink/volcenginecc`，模块版本约束为 `version = "~> 1.0"`（>= 1.0.0、< 2.0.0），与 Provider 版本要求分别配置。Registry 安装要求该范围内已有已发布模块版本。
+
 ## 1. 概述（Overview）
 
 本模块将已有 CLB、ALB 或 RDS MySQL 后端发布为 Endpoint Service，在消费方 VPC 中创建 Interface Endpoint，并可由服务方显式接纳连接。账号白名单、Endpoint 安全组和可选私有 DNS 共同限定访问范围；VPC、子网、后端、监听器、安全组规则及 IAM 权限由调用方维护。

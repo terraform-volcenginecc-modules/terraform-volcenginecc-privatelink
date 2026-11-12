@@ -2,6 +2,8 @@
 
 Publishes Volcengine PrivateLink services, creates consumer Endpoints, and manages explicit connection approvals.
 
+Module source: `terraform-volcenginecc-modules/privatelink/volcenginecc`; module version: `version = "~> 1.0"` (>= 1.0.0, < 2.0.0). Provider version requirements are separate. Registry installation requires a published module release in this range.
+
 ## 1. Overview
 
 This module publishes existing CLB, ALB, or RDS MySQL backends through an Endpoint Service, creates Interface Endpoints in consumer VPCs, and optionally lets the service owner approve connections. Account allowlists, Endpoint security groups, and optional private DNS restrict access. Callers manage VPCs, subnets, backends, listeners, security group rules, and IAM permissions.

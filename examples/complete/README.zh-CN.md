@@ -1,5 +1,7 @@
 # COMPLETE PrivateLink 示例
 
+模块 source 为 `terraform-volcenginecc-modules/privatelink/volcenginecc`，模块版本约束为 `version = "~> 1.0"`（>= 1.0.0、< 2.0.0），与 Provider 版本要求分别配置。Registry 安装要求该范围内已有已发布模块版本。
+
 ## 1. 概述
 
 本示例在同一账号的服务方和消费方 VPC 之间建立多可用区 PrivateLink：已有 CLB/ALB 后端通过 Endpoint Service 发布，消费方创建多可用区 Endpoint，服务方分阶段审批连接；示例 root 还创建仅绑定消费 VPC 的 PrivateZone 和 CNAME。调用方需准备后端、VPC、子网、安全组及空闲私网 IP。basic 示例不包含手动审批和自定义私网 DNS。

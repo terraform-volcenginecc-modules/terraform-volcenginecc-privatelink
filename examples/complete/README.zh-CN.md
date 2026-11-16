@@ -1,5 +1,7 @@
 # COMPLETE PrivateLink 示例
 
+模块 source 为 `terraform-volcenginecc-modules/privatelink/volcenginecc`，模块版本约束为 `version = "~> 1.0"`（>= 1.0.0、< 2.0.0），与 Provider 版本要求分别配置。Registry 安装要求该范围内已有已发布模块版本。
+
 ## 1. 概述
 
 本示例在同一账号的服务方和消费方 VPC 之间建立多可用区 PrivateLink：已有 CLB/ALB 后端通过 Endpoint Service 发布，消费方创建多可用区 Endpoint，服务方分阶段审批连接；示例 root 还创建仅绑定消费 VPC 的 PrivateZone 和 CNAME。调用方需准备后端、VPC、子网、安全组及空闲私网 IP。basic 示例不包含手动审批和自定义私网 DNS。
@@ -84,8 +86,8 @@ terraform destroy
 ## 9. 说明
 
 - 凭据通过 Provider 支持的运行环境或认证配置传入，不写入源文件或参数文件。
-- Apply 后再次执行 `terraform plan`；除下述已知问题外，结果无变化才满足幂等要求。
-- **已知问题（`Volcengine::PrivateLink::VpcEndpointConnection`）**：手动审批连接显式设置 `bps = 100` 时，首次 Apply 可以成功；随后执行二次 plan，Provider 可能将云端回读值显示为 `10000`，并计划更新回配置值 `100`。该差异属于连接带宽的回读或单位一致性问题。明确带宽为硬性要求时，应核对云端实际带宽并审查每次 plan；不要求显式带宽时保持 `connection_bps = null`，使用云端默认值。
+- Apply 后再次执行 `terraform plan`，结果无变化才满足幂等要求。
+- **带宽配置提示**：手动审批连接显式设置 `bps = 100` 时，首次 Apply 可以成功；随后执行二次 plan，Provider 可能将云端回读值显示为 `10000`，并计划更新回配置值 `100`。该差异属于连接带宽的回读或单位一致性问题。明确带宽为硬性要求时，应核对云端实际带宽并审查每次 plan；不要求显式带宽时保持 `connection_bps = null`，使用云端默认值。
 - PrivateZone 在首次 Apply 时创建，但连接接纳前业务不可访问。Zone 只绑定消费方 VPC；同名 Zone 应由单一 State 管理。
 - Endpoint 安全组除业务端口外，还需允许 IPv4 入方向 ICMP 来源 `100.64.0.0/10`；IPv6 场景允许 ICMPv6 来源 `fd00:64::/32`。目标不健康时，域名可能返回 NXDOMAIN。
 - 原生 DNS 当前仅支持 `public` 类型；先在公开权威 DNS 中添加 TXT 所有权记录，云端状态为 `Verified` 后再设置 `enable_native_private_dns = true`。验证请求为 write-only，需审查后续 plan。
